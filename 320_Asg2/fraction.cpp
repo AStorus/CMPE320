@@ -1,22 +1,27 @@
-#include "fraction10103737.h"
+#include "fraction.h"
 
 using namespace std;
 
+//No parameter constructor,sets numerator to 0 and denominator to 1
 Fraction::Fraction() : num(0), den(1) { }
 
 Fraction::Fraction(int n) : num(n), den(1) {}
 
 Fraction::Fraction(int n, int d) {  
 
+    //Check for divide by 0
     if(d == 0)
         throw FractionException("Cannot divide by 0");
 
+    //if the numerator is 0, disregard what d is set to and set d to 0
     if(n == 0) {
         num = 0;
         den = 1;
     }
     else
     {
+        //This takes care of the numerator sign convention
+        //Store the original values of the numerator and denominator
         int top, bottom;
         top = n;
         bottom = d;
@@ -26,6 +31,7 @@ Fraction::Fraction(int n, int d) {
             d *= -1;
         reduce(n, d);
 
+        //If only one of the top or bottom is negative, make only the numerator negative
         if(!((top < 0) && (bottom < 0))) {
             if((top < 0) || (bottom < 0))
                 n *= -1;
@@ -44,6 +50,7 @@ void Fraction::reduce(int &n, int &d) {
 }
 
 int Fraction::gcd(int n, int d) {
+    //Using the gcd algorithm supplied by the assignment description
     if((d <= n) && (n % d == 0))
         return d;
     else if(d > n)
@@ -61,6 +68,7 @@ int Fraction::denominator() const{
     return den;
 }
 
+//The following operators are all handeled by considering the numerator and denominator seperately
 Fraction operator+(const Fraction &left, const Fraction &right) {
     int n = left.numerator() * right.denominator() + right.numerator() * left.denominator();
     int d = right.denominator() * left.denominator();
@@ -94,8 +102,11 @@ bool operator==(const Fraction &left, const Fraction &right) {
 }
 
 bool operator!=(const Fraction &left, const Fraction &right) {
-    return !(left == right);
-
+    if((left.numerator() != right.numerator()) ||
+            (left.denominator() != right.denominator()))
+            return true;
+    else
+            return false;
 }
 
 bool operator>(const Fraction &left, const Fraction &right) {
@@ -145,8 +156,12 @@ Fraction Fraction::operator++(int na) {
 }
 
 Fraction &Fraction::operator+=(const Fraction &right) {
-    num = num * right.den + right.num * den;
-    den = den * right.den;
+    int n, d;
+    n = num * right.den + right.num * den;
+    d = den * right.den;
+    reduce(n, d);
+    num = n;
+    den = d;
     return *this;
 }
 
@@ -156,9 +171,29 @@ ostream &operator<<(ostream &out, const Fraction &value) {
 }
 
 istream &operator>>(istream &in, Fraction &f) {
-    //istream a();
-    int b;
-    in >> f.num >> b >> f.den;
+    char c;
+    int n, d;
+    //set numerator
+    in >> n;
+    f.num = n;
+    f.den = 1;
+
+    //check for slash
+    c = in.peek();
+    if(c == '/')
+        in >> c;
+    else
+        return in;
+    //check denominator
+    c = in.peek();
+    if(c == '0')
+        throw FractionException("Cannot divide by 0");
+    else if(isdigit(c)) {
+        in >> d;
+        f.reduce(n, d);
+        f.num = n;
+        f.den = d;
+    }
     return in;
 }
 

@@ -6,6 +6,7 @@
 #include <fstream>
 #include <string>
 #include <typeinfo>
+#include <ctype.h>
 using namespace std;
 
 class Fraction {
